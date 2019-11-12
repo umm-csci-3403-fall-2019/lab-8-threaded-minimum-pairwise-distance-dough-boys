@@ -1,19 +1,15 @@
 package mpd;
 
-import java.sql.SQLOutput;
-import java.util.Arrays;
-
 public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance {
 
-    private int[] something;
+    private int[] valueArray;
     private int halfLength;
     private Result finalResult;
 
     @Override
     public long minimumPairwiseDistance(int[] values) {
-        something = values.clone();
-        halfLength = (something.length)/2;
-        Arrays.sort(something);
+        valueArray = values;
+        halfLength = (valueArray.length)/2;
         Result sharedResult = new Result();
 
         Thread[] thread = new Thread[4];
@@ -43,17 +39,19 @@ public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance 
         private LowLeft(Result r){
             finalResult = r;
         }
+
         public void run(){
-            long result = finalResult.getResult();
-            int j = 0;
-            for (int i = j + 1; i < halfLength; ++i) {
-                for (j = 0; j < i; ++j) {
-                    long diff = Math.abs(something[i] - something[j]);
+            long result = Integer.MAX_VALUE;
+
+            for (int i = 0; i < halfLength; ++i) {
+                for (int j = 0; j < i; ++j) {
+                    long diff = Math.abs(valueArray[i] - valueArray[j]);
                     if (diff < result) {
                         result = diff;
                     }
                 }
             }
+
             finalResult.setResult(result);
         }
     }
@@ -65,12 +63,11 @@ public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance 
         }
 
         public void run(){
-            long result = finalResult.getResult();
+            long result = Integer.MAX_VALUE;
 
-            int j = 0;
-            for (int i = j + 1 + halfLength; i < something.length; ++i) {
-                for (j = 0; (j + halfLength) < i; ++j) {
-                    long diff = Math.abs(something[i] - something[j]);
+            for (int i = halfLength; i < valueArray.length; ++i) {
+                for (int j = 0; (j + halfLength) < i; ++j) {
+                    long diff = Math.abs(valueArray[i] - valueArray[j]);
                     if (diff < result) {
                         result = diff;
                     }
@@ -87,12 +84,11 @@ public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance 
         }
 
         public void run(){
+            long result = Integer.MAX_VALUE;
 
-            long result = finalResult.getResult();
-            int j = halfLength;
-            for (int i = j + 1; i < something.length; ++i) {
-                for (j = halfLength; j < i; ++j) {
-                    long diff = Math.abs(something[i] - something[j]);
+            for (int i = halfLength; i < valueArray.length; ++i) {
+                for (int j = halfLength; j < i; ++j) {
+                    long diff = Math.abs(valueArray[i] - valueArray[j]);
                     if (diff < result) {
                         result = diff;
                     }
@@ -109,11 +105,11 @@ public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance 
         }
 
         public void run(){
-            long result = finalResult.getResult();
-            int j = 0;
-            for (int i = halfLength; i <= j + halfLength - 1; ++i) {
-                for (j = 0; (j + halfLength) < something.length; ++j) {
-                    long diff = Math.abs(something[i] - something[j]);
+            long result = Integer.MAX_VALUE;
+
+            for (int j = 0; (j+halfLength) < valueArray.length; ++j) {
+                for (int i = halfLength; i  < (j+halfLength); ++i) {
+                    long diff = Math.abs(valueArray[i] - valueArray[j]);
                     if (diff < result) {
                         result = diff;
                     }
@@ -129,7 +125,9 @@ public class ThreadedMinimumPairwiseDistance implements MinimumPairwiseDistance 
             return result;
         }
         synchronized void setResult(long val){
-            result = val;
+            if(val < result) {
+                result = val;
+            }
         }
     }
 
